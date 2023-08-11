@@ -1,0 +1,14 @@
+name: KnockOut
+version: '${project.version}'
+main: org.pebbleprojects.knockout.KnockOut
+authors: [FalconMCDevs]
+commands:
+  knockout:
+    description: Main command for knockout
+    aliases:
+      - ko
+
+permissions:
+  knockout.admin:
+    description: Admin permission for knockout
+    default: op

@@ -1,0 +1,60 @@
+otherMessages:
+  alreadyIn: "&cYou're already in KnockOut!"
+  notIn: "&cYou are not even in KnockOut!"
+  inAnotherGame: "&cYou're already in an another game!"
+  invalidArguments:
+    admin:
+      - "&dKnock&5Out &5Help Commands"
+      - "&7"
+      - "&d/knockout join &7Joins Knockout"
+      - "&d/knockout leave &7Leaves Knockout"
+      - "&d/knockout setInventoryNPC &7Creates an inventory saver npc"
+      - "&d/knockout setLobby &7Sets lobby location"
+      - "&d/knockout addSpawn &7Adds game location"
+      - "&d/knockout reload &7Reloads config and data files"
+      - "&d/knockout removeNPC <ID> &7Removes NPC with a specific ID"
+    player:
+      - "&dKnock&5Out &5Help Commands"
+      - "&7"
+      - "&d/knockout join &7Joins Knockout"
+      - "&d/knockout leave &7Leaves Knockout"
+      - "&d/knockout saveInventory &7Saves your inventory slots"
+
+chat-format:
+  enabled: true
+  format: "&7%player% &7%message%"
+
+tempBlockRemoveDelay: 10 # Temp blocks like obsidian (Time in seconds)
+
+kill: # When attacker is set, public broadcasts aren't concluded.
+  coins: 20
+  messages:
+    chat:
+      victim:
+        enabled: true
+        message: "&cYou have been killed by &e%attacker%"
+      attacker:
+        enabled: true
+        message: "&aYou have killed &e%victim% &6&l+%coins%G"
+    action-bar:
+      victim:
+        enabled: true
+        message: "&c&lYOU HAVE DIED!"
+      attacker:
+        enabled: true
+        message: "&6&l+%coins%G"
+
+inventory-saver-npc:
+  name: "&5InventorySaver"
+  skinName: "HoneySalted"
+
+scoreboard:
+  title: "&d&lKnock&5&lOut"
+  lines:
+    - "&dKills &8» &5%kills%"
+    - ""
+    - "&dKill Streaks &8» &5%killStreaks%"
+    - ""
+    - "&dDeaths &8» &5%deaths%"
+    - ""
+    - "&5Play.FalconMC.Online"
