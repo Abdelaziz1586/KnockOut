@@ -2,6 +2,8 @@ name: KnockOut
 version: '${project.version}'
 main: org.pebbleprojects.knockout.KnockOut
 authors: [FalconMCDevs]
+softdepend:
+  - ProCosmetics
 commands:
   knockout:
     description: Main command for knockout

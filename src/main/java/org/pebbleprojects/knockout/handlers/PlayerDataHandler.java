@@ -51,6 +51,9 @@ public class PlayerDataHandler {
         killStreaks = new HashMap<>();
         tempBlocks = new ArrayList<>();
         api = Bukkit.getPluginManager().getPlugin("ProCosmetics") != null ? ProCosmeticsProvider.get() : null;
+
+        KnockOut.INSTANCE.getServer().getConsoleSender().sendMessage(api == null ? "§cCouldn't find ProCosmetics, running without it" : "§aHooked into ProCosmetics");
+
         savedInventories = new HashMap<>();
 
         pearl = createItemStack(Material.ENDER_PEARL, "§5EnderPearl", null, 1, false);
@@ -71,6 +74,8 @@ public class PlayerDataHandler {
         knockBackBow.setItemMeta(itemMeta);
 
         updateMap();
+
+
     }
 
     public void shutdown() {
