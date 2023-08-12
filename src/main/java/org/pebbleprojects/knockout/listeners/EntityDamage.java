@@ -23,7 +23,7 @@ public class EntityDamage implements Listener {
         lastDamage = new HashMap<>();
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler
     public void onEntityDamage(final EntityDamageEvent event) {
         final Entity entity = event.getEntity();
 

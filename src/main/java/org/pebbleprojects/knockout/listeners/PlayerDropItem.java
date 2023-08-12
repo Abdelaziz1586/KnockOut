@@ -7,7 +7,7 @@ import org.pebbleprojects.knockout.handlers.PlayerDataHandler;
 
 public class PlayerDropItem implements Listener {
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler
     public void onPlayerDropItem(final PlayerDropItemEvent event) {
         if (PlayerDataHandler.INSTANCE.players.contains(event.getPlayer())) event.setCancelled(true);
     }

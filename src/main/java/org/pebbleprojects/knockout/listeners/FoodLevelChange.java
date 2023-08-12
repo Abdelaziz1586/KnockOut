@@ -8,7 +8,7 @@ import org.pebbleprojects.knockout.handlers.PlayerDataHandler;
 
 public class FoodLevelChange implements Listener {
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler
     public void onFoodLevelChange(final FoodLevelChangeEvent event) {
         if (PlayerDataHandler.INSTANCE.players.contains((Player) event.getEntity())) event.setCancelled(true);
     }

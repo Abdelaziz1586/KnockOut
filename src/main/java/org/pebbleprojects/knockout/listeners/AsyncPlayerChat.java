@@ -9,7 +9,7 @@ import org.pebbleprojects.knockout.handlers.PlayerDataHandler;
 
 public class AsyncPlayerChat implements Listener {
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler
     public void onAsyncPlayerChat(final AsyncPlayerChatEvent event) {
         final Player player = event.getPlayer();
         if (PlayerDataHandler.INSTANCE.players.contains(player)) {

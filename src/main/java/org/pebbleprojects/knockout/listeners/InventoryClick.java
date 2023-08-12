@@ -8,7 +8,7 @@ import org.pebbleprojects.knockout.handlers.PlayerDataHandler;
 
 public class InventoryClick implements Listener {
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler
     public void onInventoryClick(final InventoryClickEvent event) {
         if (PlayerDataHandler.INSTANCE.players.contains((Player) event.getWhoClicked()) && event.getInventory().getHolder() == null) event.setCancelled(true);
     }

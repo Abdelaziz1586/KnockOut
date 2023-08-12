@@ -9,7 +9,7 @@ import org.pebbleprojects.knockout.handlers.PlayerDataHandler;
 public class BlockPlace implements Listener {
 
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler
     public void onBlockPlace(final BlockPlaceEvent event) {
         Handler.INSTANCE.runTask(() -> {
             if (PlayerDataHandler.INSTANCE.players.contains(event.getPlayer())) {

@@ -7,7 +7,7 @@ import org.pebbleprojects.knockout.handlers.PlayerDataHandler;
 
 public class BlockBreak implements Listener {
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler
     public void onBlockBreak(final BlockBreakEvent event) {
         if (PlayerDataHandler.INSTANCE.players.contains(event.getPlayer())) event.setCancelled(true);
     }
