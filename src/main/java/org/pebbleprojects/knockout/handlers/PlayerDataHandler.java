@@ -73,9 +73,9 @@ public class PlayerDataHandler {
 
         knockBackBow.setItemMeta(itemMeta);
 
+        spawn = null;
+
         updateMap();
-
-
     }
 
     public void shutdown() {
@@ -92,8 +92,6 @@ public class PlayerDataHandler {
     }
 
     public void updateMap() {
-        final int[] i = {1};
-
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -101,14 +99,14 @@ public class PlayerDataHandler {
 
                 if (spawns.isEmpty()) {
                     spawn = null;
-                    i[0] = 1;
+                    updateMap();
                     return;
                 }
 
-                spawn = spawns.get(new Random().nextInt(spawns.size()-1));
-                i[0] = 24000;
+                spawn = spawns.get(new Random().nextInt(spawns.size()));
+                updateMap();
             }
-        }.runTaskTimer(KnockOut.INSTANCE, 0, i[0]);
+        }.runTaskLater(KnockOut.INSTANCE, spawn == null ? 1 : 24000);
     }
 
     public void broadcast(final String message) {
@@ -212,10 +210,9 @@ public class PlayerDataHandler {
 
             if (attacker.getInventory().contains(Material.ENDER_PEARL) || !(o instanceof Integer)) {
                 attacker.getInventory().addItem(pearl);
-                return;
+            } else {
+                attacker.getInventory().setItem((Integer) o, pearl);
             }
-
-            attacker.getInventory().setItem((Integer) o, pearl);
         }
 
         broadcast(attacker != null ? "§7[§e⚔§7] §d§l" + attacker.getDisplayName() +"§7got killed by §d§l" + attacker.getDisplayName() : "§7[§e⚔§7] §d§l" + victim.getDisplayName() + " §7died.");
