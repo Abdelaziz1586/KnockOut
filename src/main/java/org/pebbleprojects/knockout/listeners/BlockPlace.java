@@ -7,8 +7,12 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitTask;
 import org.pebbleprojects.knockout.handlers.Handler;
 import org.pebbleprojects.knockout.handlers.PlayerDataHandler;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class BlockPlace implements Listener {
 
@@ -30,7 +34,9 @@ public class BlockPlace implements Listener {
             PlayerDataHandler.INSTANCE.placeTemp(block, b);
 
             if (b) {
-                Handler.INSTANCE.runTaskLater(() -> {
+                final List<BukkitTask> powerTasks = PlayerDataHandler.INSTANCE.powers.getOrDefault(player.getUniqueId(), new ArrayList<>());
+
+                powerTasks.add(Handler.INSTANCE.runTaskLater(() -> {
                     if (!PlayerDataHandler.INSTANCE.players.contains(player) || player.getInventory().contains(Material.GOLD_PLATE)) return;
 
                     final Object o = Handler.INSTANCE.getData("players." + player.getUniqueId() + ".savedInventory.launchpad");
@@ -44,7 +50,9 @@ public class BlockPlace implements Listener {
                     }
 
                     player.getInventory().addItem(PlayerDataHandler.INSTANCE.launchpad);
-                }, 100);
+                }, 100));
+
+                PlayerDataHandler.INSTANCE.powers.put(player.getUniqueId(), powerTasks);
                 return;
             }
 

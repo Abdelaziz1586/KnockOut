@@ -13,11 +13,13 @@ import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_8_R3.inventory.CraftItemStack;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 import org.pebbleprojects.knockout.KnockOut;
 import org.pebbleprojects.knockout.npc.NPCHandler;
 import org.pebbleprojects.knockout.npc.customEvent.PacketReader;
@@ -40,16 +42,20 @@ public class PlayerDataHandler {
     public final HashMap<UUID, Player> lastDamage;
     private final HashMap<UUID, Integer> killStreaks;
     private final HashMap<UUID, FastBoard> scoreboards;
+    public final HashMap<UUID, List<BukkitTask>> powers;
+    public final HashMap<UUID, List<Projectile>> projectiles;
     private final HashMap<UUID, SavedInventory> savedInventories;
     public final ItemStack knockBackStick, knockBackBow, blocks, pearl, launchpad, speed,  arrow;
 
     public PlayerDataHandler() {
         INSTANCE = this;
 
+        powers = new HashMap<>();
         players = new ArrayList<>();
         lastDamage = new HashMap<>();
         scoreboards = new HashMap<>();
         killStreaks = new HashMap<>();
+        projectiles = new HashMap<>();
         tempBlocks = new ArrayList<>();
 
         final Plugin plugin = Bukkit.getPluginManager().getPlugin("ProCosmetics");
@@ -110,7 +116,15 @@ public class PlayerDataHandler {
                     return;
                 }
 
+                if (spawn != null) spawns.remove(spawn);
+
+                if (spawns.size() == 0) return;
+
                 spawn = spawns.get(new Random().nextInt(spawns.size()));
+
+                for (final Player player : players) {
+                    player.teleport(spawn);
+                }
                 updateMap();
             }
         }.runTaskLater(KnockOut.INSTANCE, spawn == null ? 1 : 24000);
@@ -208,7 +222,6 @@ public class PlayerDataHandler {
         if (attacker != null) {
             addKill(attacker.getUniqueId());
             addKillStreak(attacker.getUniqueId());
-            attacker.setHealth(attacker.getMaxHealth());
 
             Object o;
             if (api != null) {
@@ -229,9 +242,19 @@ public class PlayerDataHandler {
             } else {
                 attacker.getInventory().setItem((Integer) o, arrow);
             }
+
+            updateScoreboard(attacker);
         }
 
         broadcast(attacker != null ? "§7[§e⚔§7] §d§l" + victim.getDisplayName() +" §7got killed by §d§l" + attacker.getDisplayName() : "§7[§e⚔§7] §d§l" + victim.getDisplayName() + " §7died.");
+
+        if (powers.containsKey(victim.getUniqueId())) {
+            for (final BukkitTask task : powers.get(victim.getUniqueId())) task.cancel();
+        }
+
+        if (projectiles.containsKey(victim.getUniqueId())) {
+            for (final Projectile projectile : projectiles.get(victim.getUniqueId())) projectile.remove();
+        }
 
         Handler.INSTANCE.runTaskLater(() -> {
             if (victim.isOnline()) getPlayerReady(victim);

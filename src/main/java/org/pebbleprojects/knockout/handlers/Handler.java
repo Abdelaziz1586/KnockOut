@@ -8,6 +8,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 import org.pebbleprojects.knockout.Command;
 import org.pebbleprojects.knockout.KnockOut;
 import org.pebbleprojects.knockout.listeners.*;
@@ -106,8 +107,13 @@ public class Handler {
         runnable.run();
     }
 
-    public void runTaskLater(final Runnable runnable, final int delay) {
-        Bukkit.getScheduler().scheduleSyncDelayedTask(KnockOut.INSTANCE, runnable, delay);
+    public final BukkitTask runTaskLater(final Runnable runnable, final int delay) {
+        return new BukkitRunnable() {
+            @Override
+            public void run() {
+                runnable.run();
+            }
+        }.runTaskLater(KnockOut.INSTANCE, delay);
     }
     public Object getConfig(final String key, final boolean translate) {
         return config.isSet(key) ? (translate ? ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(config.getString(key))).replace("%nl%", "\n") : config.get(key)) : null;

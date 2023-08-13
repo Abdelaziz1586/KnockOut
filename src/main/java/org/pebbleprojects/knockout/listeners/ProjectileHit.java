@@ -13,8 +13,9 @@ public class ProjectileHit implements Listener {
     public void onProjectileHit(final ProjectileHitEvent event) {
         final ProjectileSource source = event.getEntity().getShooter();
 
-        if (source instanceof Player && PlayerDataHandler.INSTANCE.players.contains((Player) source))
+        if (source instanceof Player && PlayerDataHandler.INSTANCE.players.contains((Player) source)) {
             event.getEntity().remove();
+        }
     }
 
 }

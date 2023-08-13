@@ -7,8 +7,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitTask;
 import org.pebbleprojects.knockout.handlers.Handler;
 import org.pebbleprojects.knockout.handlers.PlayerDataHandler;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class PlayerInteract implements Listener {
 
@@ -28,7 +32,9 @@ public class PlayerInteract implements Listener {
 
                         player.getInventory().remove(Material.FEATHER);
 
-                        Handler.INSTANCE.runTaskLater(() -> {
+                        final List<BukkitTask> powerTasks = PlayerDataHandler.INSTANCE.powers.getOrDefault(player.getUniqueId(), new ArrayList<>());
+
+                        powerTasks.add(Handler.INSTANCE.runTaskLater(() -> {
                             if (!PlayerDataHandler.INSTANCE.players.contains(player) || player.getInventory().contains(Material.FEATHER)) return;
 
                             if (player.getWalkSpeed() == 0.4F) {
@@ -46,7 +52,9 @@ public class PlayerInteract implements Listener {
 
                                 player.getInventory().addItem(PlayerDataHandler.INSTANCE.speed);
                             }
-                        }, 200);
+                        }, 200));
+
+                        PlayerDataHandler.INSTANCE.powers.put(player.getUniqueId(), powerTasks);
                     }
                 }
             }

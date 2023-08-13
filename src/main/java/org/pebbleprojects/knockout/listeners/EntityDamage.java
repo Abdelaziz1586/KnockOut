@@ -2,6 +2,7 @@ package org.pebbleprojects.knockout.listeners;
 
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -36,14 +37,17 @@ public class EntityDamage implements Listener {
                 event.setDamage(0);
 
                 if (event instanceof EntityDamageByEntityEvent) {
-                    final Entity damager = ((EntityDamageByEntityEvent) event).getDamager();
+                    Entity damager = ((EntityDamageByEntityEvent) event).getDamager();
+
+                    if (damager instanceof Projectile) damager = (Entity) ((Projectile) damager).getShooter();
 
                     if (damager instanceof Player) {
                         if (!PlayerDataHandler.INSTANCE.players.contains((Player) damager)) {
                             event.setCancelled(true);
                             return;
                         }
-                        lastDamage.put(player.getUniqueId(), (Player) damager);
+
+                        if (damager != player) lastDamage.put(player.getUniqueId(), (Player) damager);
                     }
                     return;
                 }
