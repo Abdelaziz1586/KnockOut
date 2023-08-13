@@ -16,6 +16,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.pebbleprojects.knockout.KnockOut;
 import org.pebbleprojects.knockout.npc.NPCHandler;
@@ -51,7 +52,9 @@ public class PlayerDataHandler {
         killStreaks = new HashMap<>();
         tempBlocks = new ArrayList<>();
 
-        api = Bukkit.getPluginManager().getPlugin("ProCosmetics") != null ? ProCosmeticsProvider.get() : null;
+        final Plugin plugin = Bukkit.getPluginManager().getPlugin("ProCosmetics");
+
+        api = plugin != null && plugin.isEnabled() ? ProCosmeticsProvider.get() : null;
 
         KnockOut.INSTANCE.getServer().getConsoleSender().sendMessage(api == null ? "§cCouldn't find ProCosmetics, running without it" : "§aHooked into ProCosmetics");
 
