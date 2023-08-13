@@ -75,12 +75,5 @@
             <artifactId>fastboard</artifactId>
             <version>1.2.1</version>
         </dependency>
-        <dependency>
-            <groupId>se.file14.procosmetics</groupId>
-            <artifactId>procosmetics</artifactId>
-            <version>LATEST</version>
-            <systemPath>D:/ProCosmetics.jar</systemPath>
-            <scope>system</scope>
-        </dependency>
     </dependencies>
 </project>
