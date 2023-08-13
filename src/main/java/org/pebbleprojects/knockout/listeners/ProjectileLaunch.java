@@ -1,6 +1,7 @@
 package org.pebbleprojects.knockout.listeners;
 
 import org.bukkit.Material;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
@@ -18,7 +19,9 @@ public class ProjectileLaunch implements Listener {
 
     @EventHandler
     public void onProjectileLaunch(final ProjectileLaunchEvent event) {
-        final ProjectileSource source = event.getEntity().getShooter();
+        final Projectile projectile = event.getEntity();
+
+        final ProjectileSource source = projectile.getShooter();
 
         if (source instanceof Player) {
             final Player player = (Player) source;
@@ -27,24 +30,27 @@ public class ProjectileLaunch implements Listener {
 
                 final List<Projectile> projectiles = PlayerDataHandler.INSTANCE.projectiles.getOrDefault(player.getUniqueId(), new ArrayList<>());
 
-                projectiles.add(event.getEntity());
+                projectiles.add(projectile);
 
                 PlayerDataHandler.INSTANCE.projectiles.put(player.getUniqueId(), projectiles);
 
-                Handler.INSTANCE.runTaskLater(() -> {
-                    if (!PlayerDataHandler.INSTANCE.players.contains(player) || player.getInventory().contains(Material.ARROW)) return;
-
-                    final Object o = Handler.INSTANCE.getData("players." + player.getUniqueId() + ".savedInventory.arrow");
-                    if (o instanceof Integer) {
-                        final ItemStack itemStack = player.getInventory().getItem((Integer) o);
-
-                        if (itemStack == null || itemStack.getType() == Material.AIR) {
-                            player.getInventory().setItem((Integer) o, PlayerDataHandler.INSTANCE.arrow);
+                if (projectile.getType() == EntityType.ARROW) {
+                    Handler.INSTANCE.runTaskLater(() -> {
+                        if (!PlayerDataHandler.INSTANCE.players.contains(player) || player.getInventory().contains(Material.ARROW))
                             return;
+
+                        final Object o = Handler.INSTANCE.getData("players." + player.getUniqueId() + ".savedInventory.arrow");
+                        if (o instanceof Integer) {
+                            final ItemStack itemStack = player.getInventory().getItem((Integer) o);
+
+                            if (itemStack == null || itemStack.getType() == Material.AIR) {
+                                player.getInventory().setItem((Integer) o, PlayerDataHandler.INSTANCE.arrow);
+                                return;
+                            }
                         }
-                    }
-                    player.getInventory().addItem(PlayerDataHandler.INSTANCE.arrow);
-                }, 100);
+                        player.getInventory().addItem(PlayerDataHandler.INSTANCE.arrow);
+                    }, 100);
+                }
             }
         }
     }
