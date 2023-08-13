@@ -71,6 +71,8 @@ public class NPC {
     }
 
     public void sendShowPacket(final Player player) {
+        if (((CraftPlayer)player).getHandle().getWorld() != npc.getWorld()) return;
+
         final PlayerConnection connection = ((CraftPlayer)player).getHandle().playerConnection;
         final DataWatcher watcher = npc.getDataWatcher();
         watcher.watch(10, (byte) 127);

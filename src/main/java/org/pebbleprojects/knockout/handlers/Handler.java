@@ -16,10 +16,7 @@ import org.pebbleprojects.knockout.npc.customEvent.PacketReader;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 public class Handler {
 
@@ -59,13 +56,17 @@ public class Handler {
         pm.registerEvents(new BlockBreak(), KnockOut.INSTANCE);
         pm.registerEvents(new BlockPlace(), KnockOut.INSTANCE);
         pm.registerEvents(new PlayerQuit(), KnockOut.INSTANCE);
+        pm.registerEvents(new PlayerMove(), KnockOut.INSTANCE);
         pm.registerEvents(new PlayerDeath(), KnockOut.INSTANCE);
         pm.registerEvents(new EntityDamage(), KnockOut.INSTANCE);
         pm.registerEvents(new RightClickNPC(), KnockOut.INSTANCE);
+        pm.registerEvents(new ProjectileHit(), KnockOut.INSTANCE);
+        pm.registerEvents(new PlayerInteract(), KnockOut.INSTANCE);
         pm.registerEvents(new InventoryClick(), KnockOut.INSTANCE);
         pm.registerEvents(new PlayerDropItem(), KnockOut.INSTANCE);
         pm.registerEvents(new FoodLevelChange(), KnockOut.INSTANCE);
         pm.registerEvents(new AsyncPlayerChat(), KnockOut.INSTANCE);
+        pm.registerEvents(new ProjectileLaunch(), KnockOut.INSTANCE);
         pm.registerEvents(new PlayerChangedWorld(), KnockOut.INSTANCE);
     }
 

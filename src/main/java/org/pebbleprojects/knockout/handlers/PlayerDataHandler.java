@@ -35,12 +35,12 @@ public class PlayerDataHandler {
     private final ProCosmetics api;
     public final ArrayList<Player> players;
     public static PlayerDataHandler INSTANCE;
-    private final ArrayList<Block> tempBlocks;
+    public final ArrayList<Block> tempBlocks;
     public final HashMap<UUID, Player> lastDamage;
     private final HashMap<UUID, Integer> killStreaks;
     private final HashMap<UUID, FastBoard> scoreboards;
     private final HashMap<UUID, SavedInventory> savedInventories;
-    private final ItemStack knockBackStick, knockBackBow, blocks, pearl;
+    public final ItemStack knockBackStick, knockBackBow, blocks, pearl, launchpad, speed,  arrow;
 
     public PlayerDataHandler() {
         INSTANCE = this;
@@ -50,15 +50,19 @@ public class PlayerDataHandler {
         scoreboards = new HashMap<>();
         killStreaks = new HashMap<>();
         tempBlocks = new ArrayList<>();
+
         api = Bukkit.getPluginManager().getPlugin("ProCosmetics") != null ? ProCosmeticsProvider.get() : null;
 
         KnockOut.INSTANCE.getServer().getConsoleSender().sendMessage(api == null ? "§cCouldn't find ProCosmetics, running without it" : "§aHooked into ProCosmetics");
 
         savedInventories = new HashMap<>();
 
+        speed = createItemStack(Material.FEATHER, "§f§lSpeed", null, 1, false);
         pearl = createItemStack(Material.ENDER_PEARL, "§5EnderPearl", null, 1, false);
+        arrow = createItemStack(Material.ARROW, "§5Arrow", null, 1, false);
         blocks = createItemStack(Material.SANDSTONE, "§5Blocks", null, 64, false);
-        knockBackBow = createItemStack(Material.BOW, "§5Bow", null, 1, false);
+        launchpad = createItemStack(Material.GOLD_PLATE, "§e§lLaunchpad", null, 1, false);
+        knockBackBow = createItemStack(Material.BOW, "§5Bow", null, 1, true);
         knockBackStick = createItemStack(Material.STICK, "§5Stick", null, 1, false);
 
         ItemMeta itemMeta = knockBackStick.getItemMeta();
@@ -174,7 +178,9 @@ public class PlayerDataHandler {
         }
 
         lastDamage.remove(player.getUniqueId());
+
         players.remove(player);
+
         if (scoreboards.containsKey(player.getUniqueId())) {
             scoreboards.get(player.getUniqueId()).delete();
             scoreboards.remove(player.getUniqueId());
@@ -184,6 +190,8 @@ public class PlayerDataHandler {
 
         NPCHandler.INSTANCE.unloadNPCs(player);
         PacketReader.INSTANCE.uninject(player);
+
+        Handler.INSTANCE.runTask(() -> player.setWalkSpeed(0.2F));
 
         final Object o = Handler.INSTANCE.getData("lobby");
         if (o instanceof Location) Handler.INSTANCE.runTask(() -> player.teleport((Location) o));
@@ -198,7 +206,6 @@ public class PlayerDataHandler {
             addKill(attacker.getUniqueId());
             addKillStreak(attacker.getUniqueId());
             attacker.setHealth(attacker.getMaxHealth());
-            getPlayerReady(attacker);
 
             Object o;
             if (api != null) {
@@ -207,71 +214,89 @@ public class PlayerDataHandler {
             }
 
             o = Handler.INSTANCE.getConfig("players." + attacker.getUniqueId() + ".savedInventory.pearl", false);
-
             if (attacker.getInventory().contains(Material.ENDER_PEARL) || !(o instanceof Integer)) {
                 attacker.getInventory().addItem(pearl);
             } else {
                 attacker.getInventory().setItem((Integer) o, pearl);
             }
+
+            o = Handler.INSTANCE.getConfig("players." + attacker.getUniqueId() + ".savedInventory.arrow", false);
+            if (attacker.getInventory().contains(Material.ARROW) || !(o instanceof Integer)) {
+                attacker.getInventory().addItem(arrow);
+            } else {
+                attacker.getInventory().setItem((Integer) o, arrow);
+            }
         }
 
-        broadcast(attacker != null ? "§7[§e⚔§7] §d§l" + attacker.getDisplayName() +"§7got killed by §d§l" + attacker.getDisplayName() : "§7[§e⚔§7] §d§l" + victim.getDisplayName() + " §7died.");
+        broadcast(attacker != null ? "§7[§e⚔§7] §d§l" + victim.getDisplayName() +" §7got killed by §d§l" + attacker.getDisplayName() : "§7[§e⚔§7] §d§l" + victim.getDisplayName() + " §7died.");
 
         Handler.INSTANCE.runTaskLater(() -> {
             if (victim.isOnline()) getPlayerReady(victim);
         }, 1);
     }
 
-    public void placeTemp(final Block block) {
+    public void placeTemp(final Block block, final boolean isPressurePlate) {
         tempBlocks.add(block);
 
-        final int[] i = {0};
+        if (!isPressurePlate) {
+            final int[] i = new int[2];
+            
+            i[1] = new Random().nextInt(5000);
+             
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    i[0]++;
 
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                i[0]++;
+                    if (i[0] != 10) {
+                        ((CraftServer) Bukkit.getServer()).getHandle().sendPacketNearby(block.getX(), block.getY(), block.getZ(), 120, ((CraftWorld) block.getWorld()).getHandle().dimension, new PacketPlayOutBlockBreakAnimation(i[1], new BlockPosition(block.getX(), block.getY(), block.getZ()), i[0]));
+                        return;
+                    }
 
-                ((CraftServer) Bukkit.getServer()).getHandle().sendPacketNearby(block.getX(), block.getY(), block.getZ(), 120, ((CraftWorld) block.getWorld()).getHandle().dimension, new PacketPlayOutBlockBreakAnimation(new Random().nextInt(5000), new BlockPosition(block.getX(), block.getY(), block.getZ()), i[0]));
+                    ((CraftServer) Bukkit.getServer()).getHandle().sendPacketNearby(block.getX(), block.getY(), block.getZ(), 120, ((CraftWorld) block.getWorld()).getHandle().dimension, new PacketPlayOutBlockBreakAnimation(i[1], new BlockPosition(block.getX(), block.getY(), block.getZ()), 0));
 
-                if (i[0] == 10) {
-                    Handler.INSTANCE.runTask(() -> {
-                        try {
-                            for (Sound sound : Sound.values()) {
-                                Field f = CraftSound.class.getDeclaredField("sounds");
-                                f.setAccessible(true);
-
-                                String[] sounds = (String[]) f.get(null);
-                                Method getBlock = CraftBlock.class.getDeclaredMethod("getNMSBlock");
-                                getBlock.setAccessible(true);
-                                Object nmsBlock = getBlock.invoke(block);
-                                net.minecraft.server.v1_8_R3.Block nms = (net.minecraft.server.v1_8_R3.Block) nmsBlock;
-
-                                if (nms.stepSound.getBreakSound()
-                                        .equals(sounds[sound.ordinal()])) {
-                                    block.getWorld().playSound(block.getLocation(), sound, 1, 1);
-                                }
-                            }
-                        }  catch (NoSuchFieldException | NoSuchMethodException | IllegalAccessException |
-                                  InvocationTargetException e) {
-                            throw new RuntimeException(e);
-                        }
-
-                        block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getType(), 120);
-                        block.setType(Material.AIR);
-
-                        tempBlocks.remove(block);
-                    });
                     this.cancel();
+                    tempBlocks.remove(block);
+                    try {
+                        for (Sound sound : Sound.values()) {
+                            Field f = CraftSound.class.getDeclaredField("sounds");
+                            f.setAccessible(true);
+
+                            String[] sounds = (String[]) f.get(null);
+                            Method getBlock = CraftBlock.class.getDeclaredMethod("getNMSBlock");
+                            getBlock.setAccessible(true);
+                            Object nmsBlock = getBlock.invoke(block);
+                            net.minecraft.server.v1_8_R3.Block nms = (net.minecraft.server.v1_8_R3.Block) nmsBlock;
+
+                            if (nms.stepSound.getBreakSound()
+                                    .equals(sounds[sound.ordinal()])) {
+                                block.getWorld().playSound(block.getLocation(), sound, 1, 1);
+                            }
+                        }
+                    } catch (NoSuchFieldException | NoSuchMethodException | IllegalAccessException |
+                             InvocationTargetException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getType(), 120);
+                    block.setType(Material.AIR);
                 }
-            }
-        }.runTaskTimer(KnockOut.INSTANCE, 0, 20);
+            }.runTaskTimer(KnockOut.INSTANCE, 0, 20);
+            return;
+        }
+
+        Handler.INSTANCE.runTaskLater(() -> {
+            block.setType(Material.AIR);
+
+            tempBlocks.remove(block);
+        }, 100);
     }
 
     public void getPlayerReady(final Player player) {
         final PlayerInventory playerInventory = player.getInventory();
 
         playerInventory.clear();
+
         playerInventory.setHelmet(null);
         playerInventory.setChestplate(null);
         playerInventory.setLeggings(null);
@@ -286,10 +311,27 @@ public class PlayerDataHandler {
         o = Handler.INSTANCE.getData("players." + player.getUniqueId() + ".savedInventory.blocks");
         playerInventory.setItem((o instanceof Integer ? (Integer) o : 2), blocks);
 
-        Handler.INSTANCE.runTask(() -> player.teleport(spawn));
+        o = Handler.INSTANCE.getData("players." + player.getUniqueId() + ".savedInventory.pearl");
+        playerInventory.setItem((o instanceof Integer ? (Integer) o : 3), pearl);
+
+        o = Handler.INSTANCE.getData("players." + player.getUniqueId() + ".savedInventory.speed");
+        playerInventory.setItem((o instanceof Integer ? (Integer) o : 8), speed);
+
+        o = Handler.INSTANCE.getData("players." + player.getUniqueId() + ".savedInventory.launchpad");
+        playerInventory.setItem((o instanceof Integer ? (Integer) o : 7), launchpad);
+
+        o = Handler.INSTANCE.getData("players." + player.getUniqueId() + ".savedInventory.arrow");
+        playerInventory.setItem((o instanceof Integer ? (Integer) o : 6), arrow);
+
+        Handler.INSTANCE.runTask(() -> {
+            player.teleport(spawn);
+            player.setWalkSpeed(0.2F);
+        });
 
         player.setFireTicks(0);
         updateScoreboard(player);
+
+        killStreaks.put(player.getUniqueId(), 0);
     }
 
     public void saveInventory(final Player player) {
@@ -391,6 +433,10 @@ public class PlayerDataHandler {
         }
 
         restoreInventory(player);
+
+        players.remove(player);
+
+        Handler.INSTANCE.runTask(() -> player.setWalkSpeed(0.2F));
 
         final Object o = Handler.INSTANCE.getData("lobby");
         if (o instanceof Location) player.teleport((Location) o);

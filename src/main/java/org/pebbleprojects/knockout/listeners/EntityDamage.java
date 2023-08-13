@@ -16,10 +16,11 @@ import java.util.UUID;
 
 public class EntityDamage implements Listener {
 
+    private final List<UUID> cooldown;
     private final HashMap<UUID, Player> lastDamage;
-    private final List<UUID> cooldown = new ArrayList<>();
 
     public EntityDamage() {
+        cooldown = new ArrayList<>();
         lastDamage = new HashMap<>();
     }
 
@@ -30,22 +31,23 @@ public class EntityDamage implements Listener {
         if (entity instanceof Player) {
             final Player player = (Player) entity;
 
-            if (event instanceof EntityDamageByEntityEvent) {
-                final Entity damager = ((EntityDamageByEntityEvent) event).getDamager();
-
-                if (damager instanceof Player) {
-                    if (!PlayerDataHandler.INSTANCE.players.contains((Player) damager)) {
-                        event.setCancelled(true);
-                        return;
-                    }
-
-                    lastDamage.put(entity.getUniqueId(), (Player) damager);
-                    event.setDamage(0);
-                }
-                return;
-            }
-
             if (PlayerDataHandler.INSTANCE.players.contains(player)) {
+
+                event.setDamage(0);
+
+                if (event instanceof EntityDamageByEntityEvent) {
+                    final Entity damager = ((EntityDamageByEntityEvent) event).getDamager();
+
+                    if (damager instanceof Player) {
+                        if (!PlayerDataHandler.INSTANCE.players.contains((Player) damager)) {
+                            event.setCancelled(true);
+                            return;
+                        }
+                        lastDamage.put(player.getUniqueId(), (Player) damager);
+                    }
+                    return;
+                }
+
                 if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID) && !cooldown.contains(player.getUniqueId())) {
                     event.setCancelled(true);
 
@@ -53,11 +55,11 @@ public class EntityDamage implements Listener {
 
                     lastDamage.remove(player.getUniqueId());
 
-                    player.setFallDistance(0);
+                    Handler.INSTANCE.runTaskLater(() -> player.setFallDistance(0), 1);
 
                     cooldown.add(player.getUniqueId());
 
-                    final int i = cooldown.size()-1;
+                    final int i = cooldown.size() - 1;
 
                     Handler.INSTANCE.runTaskLater(() -> cooldown.remove(i), 1);
                     return;

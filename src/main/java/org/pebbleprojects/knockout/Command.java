@@ -119,7 +119,7 @@ public class Command implements CommandExecutor {
                             Handler.INSTANCE.writeData("players." + player.getUniqueId() + ".savedInventory.stick", i);
                             continue;
                         }
-                        if (material.isBlock()) {
+                        if (material == Material.SANDSTONE) {
                             Handler.INSTANCE.writeData("players." + player.getUniqueId() + ".savedInventory.blocks", i);
                             continue;
                         }
@@ -129,6 +129,18 @@ public class Command implements CommandExecutor {
                         }
                         if (material == Material.BOW) {
                             Handler.INSTANCE.writeData("players." + player.getUniqueId() + ".savedInventory.bow", i);
+                            continue;
+                        }
+                        if (material == Material.FEATHER) {
+                            Handler.INSTANCE.writeData("players." + player.getUniqueId() + ".savedInventory.speed", i);
+                            continue;
+                        }
+                        if (material == Material.GOLD_PLATE) {
+                            Handler.INSTANCE.writeData("players." + player.getUniqueId() + ".savedInventory.launchpad", i);
+                            continue;
+                        }
+                        if (material == Material.ARROW) {
+                            Handler.INSTANCE.writeData("players." + player.getUniqueId() + ".savedInventory.arrow", i);
                         }
                     }
 
