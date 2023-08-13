@@ -35,6 +35,7 @@ import java.util.*;
 public class PlayerDataHandler {
 
     public Location spawn;
+    private Timer mapSwitchTimer;
     private final ProCosmetics api;
     public final ArrayList<Player> players;
     public static PlayerDataHandler INSTANCE;
@@ -102,32 +103,77 @@ public class PlayerDataHandler {
         }
         for (final Block block : tempBlocksCache)
             block.setType(Material.AIR);
+
+        mapSwitchTimer.cancel();
+        mapSwitchTimer = null;
     }
 
     public void updateMap() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                final List<Location> spawns = Handler.INSTANCE.getSpawns();
+        final int[] i = {1200};
+        final boolean[] b = {false};
 
-                if (spawns.isEmpty()) {
-                    spawn = null;
-                    updateMap();
-                    return;
+        new Thread(() -> {
+            mapSwitchTimer = new Timer();
+
+            mapSwitchTimer.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    if (!b[0]) {
+                        b[0] = true;
+
+                        final List<Location> spawns = Handler.INSTANCE.getSpawns();
+
+                        if (spawns.isEmpty()) {
+                            spawn = null;
+                            updateMap();
+                            return;
+                        }
+
+                        if (spawn != null) spawns.remove(spawn);
+
+                        if (spawns.size() == 0) return;
+
+                        spawn = spawns.get(new Random().nextInt(spawns.size()));
+                    }
+
+                    i[0]--;
+                    if (i[0] > 0) {
+
+                        int second = i[0] % 60, minute = i[0] / 60;
+
+                        if (minute >= 60) minute %= 60;
+
+                        final String s = (minute > 0 ? minute + " minutes " : "") + (second > 0 ? second + " second" + (second > 1 ? "s" : "") : "");
+
+                        for (final Player player : players) {
+                            sendActionbar(player, "§dChanging map in §5" + s);
+                        }
+                        return;
+                    }
+
+                    final List<Location> spawns = Handler.INSTANCE.getSpawns();
+
+                    if (spawns.isEmpty()) {
+                        spawn = null;
+                        updateMap();
+                        return;
+                    }
+
+                    if (spawn != null) spawns.remove(spawn);
+
+                    if (spawns.size() == 0) return;
+
+                    spawn = spawns.get(new Random().nextInt(spawns.size()));
+
+                    for (final Player player : players) {
+                        Handler.INSTANCE.runTask(() -> player.teleport(spawn));
+                        sendTitle(player, "§5§lMap Change", "§7§l" + spawn.getWorld().getName());
+                    }
+
+                    i[0] = 1200;
                 }
-
-                if (spawn != null) spawns.remove(spawn);
-
-                if (spawns.size() == 0) return;
-
-                spawn = spawns.get(new Random().nextInt(spawns.size()));
-
-                for (final Player player : players) {
-                    player.teleport(spawn);
-                }
-                updateMap();
-            }
-        }.runTaskLater(KnockOut.INSTANCE, spawn == null ? 1 : 24000);
+            }, 0, 1000);
+        }).start();
     }
 
     public void broadcast(final String message) {
