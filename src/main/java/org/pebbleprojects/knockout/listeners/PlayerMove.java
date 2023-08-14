@@ -1,6 +1,7 @@
 package org.pebbleprojects.knockout.listeners;
 
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -28,6 +29,8 @@ public class PlayerMove implements Listener {
             if (player.getWorld().getBlockAt(player.getLocation()).getType() == Material.GOLD_PLATE) {
                 if (!cooldown.contains(player.getUniqueId())) {
                     player.setVelocity(player.getLocation().getDirection().multiply(3).setY(2));
+
+                    player.playSound(player.getLocation(), Sound.FIREWORK_LAUNCH, 1, 1);
 
                     cooldown.add(player.getUniqueId());
 

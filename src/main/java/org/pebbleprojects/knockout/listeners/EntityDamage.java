@@ -11,18 +11,15 @@ import org.pebbleprojects.knockout.handlers.Handler;
 import org.pebbleprojects.knockout.handlers.PlayerDataHandler;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
 public class EntityDamage implements Listener {
 
     private final List<UUID> cooldown;
-    private final HashMap<UUID, Player> lastDamage;
 
     public EntityDamage() {
         cooldown = new ArrayList<>();
-        lastDamage = new HashMap<>();
     }
 
     @EventHandler
@@ -47,7 +44,7 @@ public class EntityDamage implements Listener {
                             return;
                         }
 
-                        if (damager != player) lastDamage.put(player.getUniqueId(), (Player) damager);
+                        if (damager != player) PlayerDataHandler.INSTANCE.lastDamage.put(player.getUniqueId(), (Player) damager);
                     }
                     return;
                 }
@@ -55,9 +52,9 @@ public class EntityDamage implements Listener {
                 if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID) && !cooldown.contains(player.getUniqueId())) {
                     event.setCancelled(true);
 
-                    PlayerDataHandler.INSTANCE.death(player, lastDamage.getOrDefault(player.getUniqueId(), null));
+                    PlayerDataHandler.INSTANCE.death(player, PlayerDataHandler.INSTANCE.lastDamage.getOrDefault(player.getUniqueId(), null));
 
-                    lastDamage.remove(player.getUniqueId());
+                    PlayerDataHandler.INSTANCE.lastDamage.remove(player.getUniqueId());
 
                     Handler.INSTANCE.runTaskLater(() -> player.setFallDistance(0), 1);
 

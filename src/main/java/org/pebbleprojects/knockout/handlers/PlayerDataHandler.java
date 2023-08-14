@@ -5,6 +5,7 @@ import net.minecraft.server.v1_8_R3.*;
 import org.bukkit.*;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.craftbukkit.v1_8_R3.CraftServer;
 import org.bukkit.craftbukkit.v1_8_R3.CraftSound;
 import org.bukkit.craftbukkit.v1_8_R3.CraftWorld;
@@ -26,6 +27,7 @@ import org.pebbleprojects.knockout.npc.customEvent.PacketReader;
 import org.pebbleprojects.knockout.utils.SavedInventory;
 import se.file14.procosmetics.ProCosmetics;
 import se.file14.procosmetics.api.ProCosmeticsProvider;
+import se.file14.procosmetics.user.User;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -109,7 +111,7 @@ public class PlayerDataHandler {
     }
 
     public void updateMap() {
-        final int[] i = {1200};
+        final int[] i = {30};
         final boolean[] b = {false};
 
         new Thread(() -> {
@@ -170,7 +172,7 @@ public class PlayerDataHandler {
                         sendTitle(player, "§5§lMap Change", "§7§l" + spawn.getWorld().getName());
                     }
 
-                    i[0] = 1200;
+                    i[0] = 30;
                 }
             }, 0, 1000);
         }).start();
@@ -236,13 +238,13 @@ public class PlayerDataHandler {
             return;
         }
 
+        players.remove(player);
+
         if (lastDamage.containsKey(player.getUniqueId())) {
             death(player, lastDamage.get(player.getUniqueId()));
         }
 
         lastDamage.remove(player.getUniqueId());
-
-        players.remove(player);
 
         if (scoreboards.containsKey(player.getUniqueId())) {
             scoreboards.get(player.getUniqueId()).delete();
@@ -265,14 +267,23 @@ public class PlayerDataHandler {
         addDeath(victim.getUniqueId());
         victim.setHealth(victim.getMaxHealth());
 
-        if (attacker != null) {
+        final boolean b = attacker != null && attacker.isOnline() && PlayerDataHandler.INSTANCE.players.contains(attacker);
+
+        if (b) {
             addKill(attacker.getUniqueId());
-            addKillStreak(attacker.getUniqueId());
+            addKillStreak(attacker);
+
+            attacker.playSound(attacker.getLocation(), Sound.LEVEL_UP, 1, 1);
 
             Object o;
             if (api != null) {
                 o = Handler.INSTANCE.getConfig("kill.coins", false);
-                api.getEconomyManager().getEconomySystem().addCoins(api.getUserManager().getUser(attacker), o == null ? 20 : (Integer) o);
+
+                try {
+                    final User user = api.getUserManager().getUser(attacker);
+
+                    user.setCoins(user.getCoins() + (o == null ? 20 : (Integer) o));
+                } catch (final Exception ignored) {}
             }
 
             o = Handler.INSTANCE.getConfig("players." + attacker.getUniqueId() + ".savedInventory.pearl", false);
@@ -292,7 +303,9 @@ public class PlayerDataHandler {
             updateScoreboard(attacker);
         }
 
-        broadcast(attacker != null ? "§7[§e⚔§7] §d§l" + victim.getDisplayName() +" §7got killed by §d§l" + attacker.getDisplayName() : "§7[§e⚔§7] §d§l" + victim.getDisplayName() + " §7died.");
+        broadcast(b ? "§7[§e⚔§7] §d§l" + victim.getDisplayName() +" §7got killed by §d§l" + attacker.getDisplayName() : "§7[§e⚔§7] §d§l" + victim.getDisplayName() + " §7died.");
+
+
 
         if (powers.containsKey(victim.getUniqueId())) {
             for (final BukkitTask task : powers.get(victim.getUniqueId())) task.cancel();
@@ -302,8 +315,13 @@ public class PlayerDataHandler {
             for (final Projectile projectile : projectiles.get(victim.getUniqueId())) projectile.remove();
         }
 
+
+
         Handler.INSTANCE.runTaskLater(() -> {
-            if (victim.isOnline()) getPlayerReady(victim);
+            if (victim.isOnline() && PlayerDataHandler.INSTANCE.players.contains(victim)) {
+                getPlayerReady(victim);
+                victim.playSound(victim.getLocation(), Sound.ENDERMAN_DEATH, 1, 1);
+            }
         }, 1);
     }
 
@@ -441,8 +459,37 @@ public class PlayerDataHandler {
         Handler.INSTANCE.writeData("players." + uuid + ".kills", getKills(uuid)+1);
     }
 
-    public void addKillStreak(final UUID uuid) {
-        killStreaks.put(uuid, getKillStreaks(uuid)+1);
+    public void addKillStreak(final Player player) {
+        final int i = getKillStreaks(player.getUniqueId())+1;
+
+        killStreaks.put(player.getUniqueId(), i);
+
+        if (i % 5 == 0) {
+
+            player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1, 1);
+
+            if (api != null) {
+                try {
+                    final String name = player.getName();
+
+                    Handler.INSTANCE.runTask(() -> {
+                        final ConsoleCommandSender console = Bukkit.getConsoleSender();
+
+                        Bukkit.dispatchCommand(console, "ppo " + name + " use effect dust");
+                        Bukkit.dispatchCommand(console, "ppo " + name + " use data random");
+                        Bukkit.dispatchCommand(console, "ppo " + name + " use style celebration");
+
+                        Handler.INSTANCE.runTaskLater(() -> {
+                            Bukkit.dispatchCommand(console, "ppo " + name + " reset");
+
+                            final User user = api.getUserManager().getUser(player.getUniqueId());
+
+                            user.setCoins(user.getCoins()+200);
+                        }, 200);
+                    });
+                } catch (final Exception ignored) {}
+            }
+        }
     }
 
     public void addDeath(final UUID uuid) {
