@@ -111,7 +111,7 @@ public class PlayerDataHandler {
     }
 
     public void updateMap() {
-        final int[] i = {30};
+        final int[] i = {1200};
         final boolean[] b = {false};
 
         new Thread(() -> {
@@ -172,7 +172,7 @@ public class PlayerDataHandler {
                         sendTitle(player, "§5§lMap Change", "§7§l" + spawn.getWorld().getName());
                     }
 
-                    i[0] = 30;
+                    i[0] = 1200;
                 }
             }, 0, 1000);
         }).start();

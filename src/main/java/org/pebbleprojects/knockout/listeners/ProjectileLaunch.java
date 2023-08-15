@@ -9,7 +9,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.projectiles.ProjectileSource;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.pebbleprojects.knockout.KnockOut;
 import org.pebbleprojects.knockout.handlers.Handler;
+import org.pebbleprojects.knockout.handlers.ParticleHandler;
 import org.pebbleprojects.knockout.handlers.PlayerDataHandler;
 
 import java.util.ArrayList;
@@ -20,6 +23,18 @@ public class ProjectileLaunch implements Listener {
     @EventHandler
     public void onProjectileLaunch(final ProjectileLaunchEvent event) {
         final Projectile projectile = event.getEntity();
+
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (!projectile.isOnGround()) {
+                    ParticleHandler.INSTANCE.playParticle(projectile.getLocation());
+                    return;
+                }
+
+                this.cancel();
+            }
+        }.runTaskTimer(KnockOut.INSTANCE, 0, 1);
 
         final ProjectileSource source = projectile.getShooter();
 

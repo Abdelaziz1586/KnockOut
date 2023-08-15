@@ -3,6 +3,7 @@ package org.pebbleprojects.knockout.handlers;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -46,11 +47,18 @@ public class Handler {
 
         new PlayerDataHandler();
 
+        new ParticleHandler();
+
         new NPCHandler();
 
         new PacketReader();
 
-        KnockOut.INSTANCE.getCommand("KnockOut").setExecutor(new Command());
+        final Command command = new Command();
+
+        final PluginCommand koCommand = KnockOut.INSTANCE.getCommand("KnockOut");
+
+        koCommand.setExecutor(command);
+        koCommand.setTabCompleter(command);
 
         final PluginManager pm = KnockOut.INSTANCE.getServer().getPluginManager();
 

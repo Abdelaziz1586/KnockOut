@@ -4,6 +4,7 @@
     <root id="archive" name="KnockOut.jar">
       <element id="module-output" name="KnockOut" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/fr/mrmicky/fastboard/1.2.1/fastboard-1.2.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/xyz/xenondevs/particle/1.8.4/particle-1.8.4.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>

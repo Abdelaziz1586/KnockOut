@@ -3,15 +3,23 @@ package org.pebbleprojects.knockout;
 import org.bukkit.Material;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.util.StringUtil;
 import org.pebbleprojects.knockout.handlers.Handler;
+import org.pebbleprojects.knockout.handlers.ParticleHandler;
 import org.pebbleprojects.knockout.handlers.PlayerDataHandler;
 import org.pebbleprojects.knockout.npc.NPC;
 import org.pebbleprojects.knockout.npc.NPCHandler;
 
-public class Command implements CommandExecutor {
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+public class Command implements CommandExecutor, TabExecutor {
+
     @Override
     public boolean onCommand(final CommandSender sender, final org.bukkit.command.Command command, final String label, final String[] args) {
         new Thread(() -> {
@@ -102,6 +110,11 @@ public class Command implements CommandExecutor {
                 }
 
                 if (args[0].equalsIgnoreCase("saveInventory")) {
+                    if (!PlayerDataHandler.INSTANCE.players.contains(player)) {
+                        player.sendMessage("§cYou're not in KnockOut!");
+                        return;
+                    }
+
                     final PlayerInventory inventory = player.getInventory();
                     final ItemStack[] items = inventory.getContents();
 
@@ -147,6 +160,11 @@ public class Command implements CommandExecutor {
                     player.sendMessage("§aSaved your inventory slots");
                     return;
                 }
+
+                if (args[0].equalsIgnoreCase("test")) {
+//                    ParticleHandler.INSTANCE.playParticle(player);
+                    return;
+                }
             }
 
             sendHelpList(sender);
@@ -158,5 +176,28 @@ public class Command implements CommandExecutor {
     // Internal Functions
     private void sendHelpList(final CommandSender sender) {
         for (final String s : Handler.INSTANCE.getConfigList("otherMessages.invalidArguments." + (sender.hasPermission("knockout.admin") ? "admin" : "player"), true, null)) sender.sendMessage(s);
+    }
+
+    @Override
+    public List<String> onTabComplete(final CommandSender sender, final org.bukkit.command.Command command, final String label, final String[] args) {
+        final List<String> completions = new ArrayList<>(), choices = new ArrayList<>();
+
+        final boolean isPlayer = sender instanceof Player;
+
+        if (isPlayer) {
+            choices.addAll(Arrays.asList("join", "leave", "saveInventory"));
+        }
+
+        if (sender.hasPermission("knockout.admin")) {
+            choices.addAll(Arrays.asList("reload", "removeNPC"));
+
+            if (isPlayer) {
+                choices.addAll(Arrays.asList("setLobby", "addSpawn"));
+            }
+        }
+
+        StringUtil.copyPartialMatches(args[0], choices, completions);
+
+        return completions;
     }
 }

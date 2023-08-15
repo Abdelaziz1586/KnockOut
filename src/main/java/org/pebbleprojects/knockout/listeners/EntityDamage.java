@@ -44,6 +44,11 @@ public class EntityDamage implements Listener {
                             return;
                         }
 
+                        if (damager.getLocation().getY() >= PlayerDataHandler.INSTANCE.spawn.getY()) {
+                            event.setCancelled(true);
+                            return;
+                        }
+
                         if (damager != player) PlayerDataHandler.INSTANCE.lastDamage.put(player.getUniqueId(), (Player) damager);
                     }
                     return;
